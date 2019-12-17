@@ -4,6 +4,7 @@ Toy project that generates a landscape.
 
 Usage: 
 cd Landscape_Generator
+
 python.exe main.py
 
 Interface:
