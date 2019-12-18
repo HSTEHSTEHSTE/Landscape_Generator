@@ -4,6 +4,6 @@ $ pip freeze > requirements.txt
 $ cat requirements.txt
 
 arcade==2.1.7
-pathfinder==0.0.4
+pathfinding==0.0.4
 noise==1.2.2
 numpy==1.17.4
