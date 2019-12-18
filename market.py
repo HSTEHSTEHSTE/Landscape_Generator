@@ -35,10 +35,12 @@ class Buyer():
         self.value_paid = 0
 
 class Market():
-    def __init__(self, total_production = 100, initial_price = 100, buyer_list = []):
+    def __init__(self, price_0 = 0, marginal_production = 20, total_production = 1000, initial_price = 100, buyer_list = []):
         self.total_production = total_production
         self.initial_price = initial_price
         self.buyer_list = buyer_list
+        self.price_0 = price_0
+        self.marginal_production = marginal_production
     
     def add_buyer(self, buyer):
         self.buyer_list.append(buyer)
@@ -80,6 +82,32 @@ class Market():
     def reset_buyers(self):
         for buyer in self.buyer_list:
             buyer.reset()
-            
+    
+    def get_production_by_price(self, price):
+        return min((price - self.price_0) * self.marginal_production, self.total_production)
+    
     def run_market(self):
-        pass
+        price = self.price_0
+        price_step = 1
+        found = 0
+        maxed_out_production = 0
+        while found == 0:
+            demand = 0
+            for buyer in self.buyer_list:
+                demand += buyer.get_amount_by_value(price)
+            supply = self.get_production_by_price(price)
+            if supply == self.total_production:
+                maxed_out_production = 1
+            print("Bidding at", price, "Supply", supply, "Demand", demand)
+            if supply > demand:
+                found = 1
+            else:
+                price += price_step
+        for buyer in self.buyer_list:
+            amount = buyer.get_amount_by_value(price)
+            buyer.add_amount_held(amount, price)
+            buyer_index = self.buyer_list.index(buyer)
+            print("Amount", amount, "sold to", buyer_index)
+        print("End bidding")
+        for buyer in self.buyer_list:
+            print("Amount: ", buyer.amount_held, "Value: ", buyer.value_paid)
