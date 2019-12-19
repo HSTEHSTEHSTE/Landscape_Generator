@@ -5,6 +5,7 @@ import random
 import arcade
 import math
 import os
+import map_manager
 
 size_x = 240
 size_y = 120
@@ -25,7 +26,8 @@ class Main(arcade.Window):
 
     def __init__(self, width, height, title):
         super().__init__(width, height, title)
-        self.map, self.map_landmass = initialMap(size_x, size_y, continent_number)
+        self.map_object = map_manager.Map()
+        self.map, self.map_landmass = self.map_object.initial_map()
         self.map_mode = 'none'
         arcade.set_background_color(arcade.color.WHITE)
         # self.set_mouse_visible(False)
@@ -53,7 +55,7 @@ class Main(arcade.Window):
     
     def data_change(self, text): 
         if text == 'new': 
-            self.map, self.map_landmass = initialMap(size_x, size_y, continent_number)
+            self.map, self.map_landmass = self.map_object.initial_map()
             self.update_map_mode('main')
         
         if text == 'save': 
@@ -287,43 +289,6 @@ class MapModeUpdateButton(TextButton):
     def on_release(self):
         super().on_release()
         self.action_function(self.text)
-
-def makeNoiseMap(size_x, size_y, continent_number, roughness, scale):
-    map = np.zeros((size_x, size_y))
-    seedx = random.randint(-1, 1024)
-    octave_number = int(2 ** roughness)
-    for x in range(0, size_x, 1):
-        for y in range(0, size_y, 1): 
-            map[x, y] = int(noise.pnoise2(seedx + continent_number * y/size_y, continent_number * x/size_x, octaves = octave_number, repeaty = continent_number) * scale)
-    roll_amount = random.randint(-1, size_x)
-    map = np.roll(map, roll_amount, axis = 0)
-    return map
-
-def initialMap(size_x, size_y, continent_number): 
-    sum = 0
-    while sum == 0: 
-        map = makeNoiseMap(size_x, size_y, continent_number, 5, 20)
-        map_landmass = np.zeros((size_x, size_y))
-        for x in range(0, size_x, 1): 
-            for y in range(0, size_y, 1):
-                if map[x, y] > 0:
-                    map_landmass[x, y] = 1  
-        sum = np.sum(map_landmass)
-    return map, map_landmass
-    
-def map_land_only(size_x, size_y, map, map_landmass, base_height): 
-    for x in range(0, size_x, 1): 
-        for y in range(0, size_y, 1): 
-            if map_landmass[x, y] < base_height: 
-                map[x, y] = 0
-    return map
-    
-def map_sea_only(size_x, size_y, map, map_landmass, base_height): 
-    for x in range(0, size_x, 1): 
-        for y in range(0, size_y, 1): 
-            if map_landmass[x, y] > base_height: 
-                map[x, y] = 0
-    return map
     
 class Resource: 
     def __init__(self, name, size_x, size_y, continent_number, roughness, scale, type_desc, map, map_landmass): 
