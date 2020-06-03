@@ -1,5 +1,4 @@
 import numpy as np
-from pathfinding.core.diagonal_movement import DiagonalMovement
 from pathfinding.core.grid import Grid
 from pathfinding.core.node import Node
 from pathfinding.finder.a_star import AStarFinder
@@ -10,11 +9,13 @@ class PathFinder():
         self.finder = AStarFinder()
         self.map = map * 10
         self.grid = Grid(matrix = map)
+        self.grid.set_passable_up_down_border()
         self.path = []
         
     def set_map(self, map):
         self.map = map
         self.grid = Grid(matrix = map)
+        self.grid.set_passable_up_down_border()
         
     def set_end(self, end):
         self.end = self.grid.node(end[1], end[0])
@@ -37,9 +38,9 @@ class PathFinder():
             return 'south'
         if node_end[0] - node_start[0] == -1:
             return 'north'
-        if node_end[1] - node_start[1] == 1 or node_end[1] - node_start[1] == -len(self.map - 1):
+        if node_end[1] - node_start[1] == 1 or node_end[1] - node_start[1] == - len(self.map) + 1:
             return 'east'
-        if node_end[1] - node_start[1] == -1 or node_end[1] - node_start[1] == len(self.map - 1):
+        if node_end[1] - node_start[1] == -1 or node_end[1] - node_start[1] == len(self.map) - 1:
             return 'west'
         else:
             return 'no direction'
@@ -70,3 +71,4 @@ class PathFinder():
     def map_values(self, original_value, new_value):
         self.map[self.map == original_value] = new_value
         self.grid = Grid(matrix = self.map)
+        self.grid.set_passable_up_down_border()

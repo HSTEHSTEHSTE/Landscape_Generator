@@ -9,12 +9,12 @@ python.exe main.py
 
 Interface:
 * Welcome Page
-![Welcome Page](welcome_page.bmp)
+![Welcome Page](images/welcome_page.bmp)
 * Left panel: 
   * main: shows ground height, sea depth
-  ![Main View](main.bmp)
+  ![Main View](images/main.bmp)
   * landmass: shows ground and sea
-  ![Landmass Page](landmass.bmp)
+  ![Landmass Page](images/landmass.bmp)
 * Right panel:
   * new: generates new landscape
   * load: loads current landscape

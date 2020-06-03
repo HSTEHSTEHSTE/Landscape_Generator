@@ -17,7 +17,8 @@ def run_sea_path_test():
     pathFinder.map_values(0, 2)
     pathFinder.map_values(-10, 5)
     pathFinder.map_values(-20, 9)
-    pathFinder.find_path([201, 0], [191, 8])#([238, 75], [239, 74])
+    pathFinder.map_values(-30, 9)
+    pathFinder.find_path([239, 100], [0, 100])#([201, 0], [52, 0])#([0, 0], [0, 119])#([239, 0], [0, 0])#([238, 75], [239, 74])
     print('manhattan distance: ', pathFinder.get_manhattan_distance())
     pathFinder.print_path()
     
