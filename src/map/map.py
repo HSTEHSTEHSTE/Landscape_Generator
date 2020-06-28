@@ -1,7 +1,7 @@
 import numpy as np
 import noise
 import random
-
+        
 class Map():
     def __init__(self, size_x = 240, size_y = 120, continent_number = 3, roughness = 5, scale = 20):
         self.size_x = size_x

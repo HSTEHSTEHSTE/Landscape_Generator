@@ -1,7 +1,7 @@
 import arcade
-import os
 import json
 import numpy as np
+import include.os
 
 ui_config = {
     "window_width": 1500,
@@ -32,57 +32,10 @@ font_size = ui_config["font_size"]
 left_button_column_width_centre = int(window_width/20)
 right_button_column_width_centre = window_width - int(window_width/20)
 
-def update_map_mode(new_map_mode):
-    map_mode = new_map_mode
-
-def data_change(text): 
-    if text == 'new': 
-        map, map_landmass = map_object.initial_map()
-        update_map_mode('main')
-    
-    if text == 'save': 
-        np.savetxt('map_saves/main.csv', map, delimiter = ',')
-        np.savetxt('map_saves/landmass.csv', map_landmass, delimiter = ',')
-        
-    if text == 'load': 
-        map = np.loadtxt('map_saves/main.csv', delimiter = ',')
-        map_landmass = np.loadtxt('map_saves/landmass.csv', delimiter = ',')
-        update_map_mode('main')
-
-button_main = {
-    "function": update_map_mode,
-    "text": "main"
-}
-
-button_landmass = {
-    "function": update_map_mode,
-    "text": "landmass"
-}
-
-button_new = {
-    "function": data_change,
-    "text": "new"
-}
-
-button_load = {
-    "function": data_change,
-    "text": "load"
-}
-
-button_save = {
-    "function": data_change,
-    "text": "save"
-}
-
-button_list_mapmodes = [button_main, button_landmass]
-button_list_datachanges = [button_new, button_load, button_save]
-
-map_mode = None
-
 def make_button_column(button_list, json_button_list, button_width_centre):
     index = 0
-    button_height_centre = map_height - int(map_height/8)
-    button_height_step = int(map_height/22)
+    button_height_centre = window_height - int(window_height/8)
+    button_height_step = int(window_height/22)
     for json_button in json_button_list:
         button = MapModeUpdateButton(button_width_centre, button_height_centre, json_button["function"], json_button["text"])
         button_height_centre -= button_height_step
@@ -90,21 +43,51 @@ def make_button_column(button_list, json_button_list, button_width_centre):
     return button_list
     
 class ui(arcade.Window):
+    
+    map_mode = None
+    
     def __init__(self):
         super().__init__(window_width, window_height, window_title)
         arcade.set_background_color(arcade.color.WHITE)
-        # self.set_mouse_visible(False)
-        file_path = os.path.dirname(os.path.abspath(__file__))
-        os.chdir(file_path)
         self.shape_list = None
         self.button_list = []
         self.text_list = []
+        self.create_buttons()
         
-        make_button_column(self.button_list, button_list_mapmodes, left_button_column_width_centre)
-        make_button_column(self.button_list, button_list_datachanges, right_button_column_width_centre)
+        make_button_column(self.button_list, self.button_list_mapmodes, left_button_column_width_centre)
+        make_button_column(self.button_list, self.button_list_datachanges, right_button_column_width_centre)
         
         self.step_x = 0
         self.step_y = 0
+    
+    def create_buttons(self):
+        self.button_main = {
+            "function": self.update_map_mode,
+            "text": "main"
+        }
+
+        self.button_landmass = {
+            "function": self.update_map_mode,
+            "text": "landmass"
+        }
+
+        self.button_new = {
+            "function": self.data_change,
+            "text": "new"
+        }
+
+        self.button_load = {
+            "function": self.data_change,
+            "text": "load"
+        }
+
+        self.button_save = {
+            "function": self.data_change,
+            "text": "save"
+        }
+        
+        self.button_list_mapmodes = [self.button_main, self.button_landmass]
+        self.button_list_datachanges = [self.button_new, self.button_load, self.button_save]
     
     def setup(self): 
         self.shape_list = arcade.ShapeElementList()
@@ -133,7 +116,7 @@ class ui(arcade.Window):
     def edit_map(self, x, y, color_0, color_1, color_2): 
         arcade.draw_lrtb_rectangle_filled(x * step_x, (x + 1) * step_x, (y + 1) * step_y, y * step_y, (color_0, color_1, color_2))
         arcade.finish_render()
-        
+
     def update_map_mode(self, new_map_mode): 
         self.map_mode = new_map_mode
         self.shape_list = arcade.ShapeElementList()
@@ -143,7 +126,7 @@ class ui(arcade.Window):
             arcade.start_render()
             self.text_list.append(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])
         elif ['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20] in self.text_list: 
-            self.text_list.remove(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])\
+            self.text_list.remove(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])
             
         if new_map_mode == 'main': 
             point_list = []
@@ -200,7 +183,10 @@ class ui(arcade.Window):
                     point_list.append((map_width_start + (x + 1) * step_x, map_height_start + y * step_y))
                     point_list.append((map_width_start + x * step_x, map_height_start + y * step_y))           
             shape = arcade.create_rectangles_filled_with_colors(point_list, main_color_list)
-            self.shape_list.append(shape)            
+            self.shape_list.append(shape)
+    
+    def data_change(self, text):
+        pass
         
 class TextButton:
     def __init__(self,
