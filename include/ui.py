@@ -10,6 +10,7 @@ def choose_ui(config):
     if config['ui'] == 'arcade':
         from src.ui.arcade import ui
         ui_object = ui.ui()
+        ui_object.setup()
         return ui_object
     
     create_ui_function = ui.ui

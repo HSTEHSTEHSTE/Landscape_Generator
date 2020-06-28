@@ -1,11 +1,14 @@
 import arcade
 import os
 import json
+import numpy as np
 
 ui_config = {
     "window_width": 1500,
     "window_height": 800,
-    "window_title": "Map"
+    "window_title": "Map",
+    "font": "Arial",
+    "font_size": 18
 }
 #todo: generate ui_config automatically by fetching window resolution
 
@@ -21,6 +24,71 @@ map_height_end = window_height - map_height_start
 map_width_start = (window_width - map_width)/2
 map_width_end = window_width - map_width_start
 
+button_width = int(window_width/10)
+button_height = int(window_width/50)
+font = ui_config["font"]
+font_size = ui_config["font_size"]
+
+left_button_column_width_centre = int(window_width/20)
+right_button_column_width_centre = window_width - int(window_width/20)
+
+def update_map_mode(new_map_mode):
+    map_mode = new_map_mode
+
+def data_change(text): 
+    if text == 'new': 
+        map, map_landmass = map_object.initial_map()
+        update_map_mode('main')
+    
+    if text == 'save': 
+        np.savetxt('map_saves/main.csv', map, delimiter = ',')
+        np.savetxt('map_saves/landmass.csv', map_landmass, delimiter = ',')
+        
+    if text == 'load': 
+        map = np.loadtxt('map_saves/main.csv', delimiter = ',')
+        map_landmass = np.loadtxt('map_saves/landmass.csv', delimiter = ',')
+        update_map_mode('main')
+
+button_main = {
+    "function": update_map_mode,
+    "text": "main"
+}
+
+button_landmass = {
+    "function": update_map_mode,
+    "text": "landmass"
+}
+
+button_new = {
+    "function": data_change,
+    "text": "new"
+}
+
+button_load = {
+    "function": data_change,
+    "text": "load"
+}
+
+button_save = {
+    "function": data_change,
+    "text": "save"
+}
+
+button_list_mapmodes = [button_main, button_landmass]
+button_list_datachanges = [button_new, button_load, button_save]
+
+map_mode = None
+
+def make_button_column(button_list, json_button_list, button_width_centre):
+    index = 0
+    button_height_centre = map_height - int(map_height/8)
+    button_height_step = int(map_height/22)
+    for json_button in json_button_list:
+        button = MapModeUpdateButton(button_width_centre, button_height_centre, json_button["function"], json_button["text"])
+        button_height_centre -= button_height_step
+        button_list.append(button)
+    return button_list
+    
 class ui(arcade.Window):
     def __init__(self):
         super().__init__(window_width, window_height, window_title)
@@ -33,38 +101,16 @@ class ui(arcade.Window):
         self.button_list = []
         self.text_list = []
         
-        play_button = MapModeUpdateButton(75, 685, self.update_map_mode, 'main')
-        self.button_list.append(play_button)
-        quit_button = MapModeUpdateButton(75, 650, self.update_map_mode, 'landmass')
-        self.button_list.append(quit_button)
-        
-        new_button = MapModeUpdateButton(1425, 685, self.data_change, 'new')
-        self.button_list.append(new_button)
-        load_button = MapModeUpdateButton(1425, 650, self.data_change, 'load')
-        self.button_list.append(load_button)
-        save_button = MapModeUpdateButton(1425, 615, self.data_change, 'save')
-        self.button_list.append(save_button)
+        make_button_column(self.button_list, button_list_mapmodes, left_button_column_width_centre)
+        make_button_column(self.button_list, button_list_datachanges, right_button_column_width_centre)
         
         self.step_x = 0
         self.step_y = 0
-        
-    def data_change(self, text): 
-        if text == 'new': 
-            self.map, self.map_landmass = self.map_object.initial_map()
-            self.update_map_mode('main')
-        
-        if text == 'save': 
-            np.savetxt('map_saves/main.csv', self.map, delimiter = ',')
-            np.savetxt('map_saves/landmass.csv', self.map_landmass, delimiter = ',')
-            
-        if text == 'load': 
-            self.map = np.loadtxt('map_saves/main.csv', delimiter = ',')
-            self.map_landmass = np.loadtxt('map_saves/landmass.csv', delimiter = ',')
-            self.update_map_mode('main')
     
     def setup(self): 
         self.shape_list = arcade.ShapeElementList()
         self.update_map_mode('none')
+        arcade.run()
         
     def on_draw(self):
         arcade.start_render()
@@ -278,13 +324,13 @@ def check_mouse_unhover_for_buttons(x, y, button_list):
 
 class MapModeUpdateButton(TextButton):
     def __init__(self, center_x, center_y, action_function, text):
-        super().__init__(center_x, center_y, 150, 30, text, 18, "Arial")
+        super().__init__(center_x, center_y, button_width, button_height, text, font_size, font)
         self.action_function = action_function
 
     def on_release(self):
         super().on_release()
         self.action_function(self.text)
 
-#window = Main(window_width, window_height, window_title)
+#window = ui(window_width, window_height, window_title)
 #window.setup()
 #arcade.run()

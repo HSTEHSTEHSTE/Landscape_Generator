@@ -23,4 +23,4 @@ config = {
 # step_x, step_y = draw_map(map)
 
 maps = update_map.generate_map(config)
-ui.choose_ui(config)
+ui_object = ui.choose_ui(config)
