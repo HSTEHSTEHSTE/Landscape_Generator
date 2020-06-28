@@ -96,7 +96,6 @@ class ui(arcade.Window):
         # self.set_mouse_visible(False)
         file_path = os.path.dirname(os.path.abspath(__file__))
         os.chdir(file_path)
-        self.button_list = None
         self.shape_list = None
         self.button_list = []
         self.text_list = []
@@ -119,26 +118,17 @@ class ui(arcade.Window):
         self.shape_list.draw()
         for text in self.text_list: 
             arcade.draw_text(text[0], text[1], text[2], text[3], text[4])
-    #    arcade.start_render()
-        # self.ball.draw()
 
     def on_mouse_motion(self, x, y, dx, dy):
-        """ Called to update our objects. Happens approximately 60 times per second."""
-        # self.ball.position_x = x
-        # self.ball.position_y = y        
+        """ Called to update our objects. Happens approximately 60 times per second."""     
         check_mouse_unhover_for_buttons(x, y, self.button_list)
         check_mouse_hover_for_buttons(x, y, self.button_list)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        check_mouse_press_for_buttons(x, y, self.button_list)
-        # print(f"You clicked button number: {button}")
-        # if button == arcade.MOUSE_BUTTON_LEFT:
-        #    self.ball.color = arcade.color.BLACK
+        check_mouse_press_for_buttons(x, y, self.button_list)\
 
     def on_mouse_release(self, x, y, button, modifiers):
-        check_mouse_release_for_buttons(x, y, self.button_list)
-        # if button == arcade.MOUSE_BUTTON_LEFT:
-        #    self.ball.color = arcade.color.AUBURN
+        check_mouse_release_for_buttons(x, y, self.button_list)\
 
     def edit_map(self, x, y, color_0, color_1, color_2): 
         arcade.draw_lrtb_rectangle_filled(x * step_x, (x + 1) * step_x, (y + 1) * step_y, y * step_y, (color_0, color_1, color_2))
@@ -153,9 +143,7 @@ class ui(arcade.Window):
             arcade.start_render()
             self.text_list.append(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])
         elif ['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20] in self.text_list: 
-            self.text_list.remove(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])
-            #self.shape_list.append(shape)
-            #arcade.finish_render()
+            self.text_list.remove(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])\
             
         if new_map_mode == 'main': 
             point_list = []
@@ -330,7 +318,3 @@ class MapModeUpdateButton(TextButton):
     def on_release(self):
         super().on_release()
         self.action_function(self.text)
-
-#window = ui(window_width, window_height, window_title)
-#window.setup()
-#arcade.run()
