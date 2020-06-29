@@ -1,7 +1,8 @@
 import arcade
-import json
 import numpy as np
 import include.os
+import include.update_map
+import math
 
 ui_config = {
     "window_width": 1500,
@@ -44,21 +45,25 @@ def make_button_column(button_list, json_button_list, button_width_centre):
     
 class ui(arcade.Window):
     
-    map_mode = None
-    
-    def __init__(self):
+    def __init__(self, config):
         super().__init__(window_width, window_height, window_title)
         arcade.set_background_color(arcade.color.WHITE)
         self.shape_list = None
         self.button_list = []
         self.text_list = []
         self.create_buttons()
+        self.maps = {}
         
         make_button_column(self.button_list, self.button_list_mapmodes, left_button_column_width_centre)
         make_button_column(self.button_list, self.button_list_datachanges, right_button_column_width_centre)
         
         self.step_x = 0
         self.step_y = 0
+        
+        self.size_x = config['size_x']
+        self.size_y = config['size_y']
+        
+        self.configurations = config
     
     def create_buttons(self):
         self.button_main = {
@@ -131,20 +136,20 @@ class ui(arcade.Window):
         if new_map_mode == 'main': 
             point_list = []
             main_color_list = []
-            max_element = np.amax(self.map)
-            min_element = np.amin(self.map)
+            max_element = np.amax(self.maps['main'])
+            min_element = np.amin(self.maps['main'])
             color_step_0 = math.floor(125/(max_element))
             color_step_1 = math.floor(255/(max_element))
             color_step_2 = math.floor(170/(max_element))
-            step_x = math.floor(map_width/size_x)
-            step_y = math.floor(map_height/size_y)
-            for x in range(0, size_x, 1): 
-                for y in range(0, size_y, 1):
-                    if self.map[x, y] > 0:
-                        color_0 = 125 - color_step_0 * (self.map[x, y])
-                        color_1 = 255 - color_step_1 * (self.map[x, y])
-                        color_2 = 170 - color_step_2 * (self.map[x, y])
-                    elif self.map[x, y] > -1: 
+            step_x = math.floor(map_width/self.size_x)
+            step_y = math.floor(map_height/self.size_y)
+            for x in range(0, self.size_x, 1): 
+                for y in range(0, self.size_y, 1):
+                    if self.maps['main'][x, y] > 0:
+                        color_0 = 125 - color_step_0 * (self.maps['main'][x, y])
+                        color_1 = 255 - color_step_1 * (self.maps['main'][x, y])
+                        color_2 = 170 - color_step_2 * (self.maps['main'][x, y])
+                    elif self.maps['main'][x, y] > -1: 
                         color_0 = 0
                         color_1 = 171
                         color_2 = 255
@@ -164,11 +169,11 @@ class ui(arcade.Window):
         if new_map_mode == 'landmass':
             point_list = []
             main_color_list = []
-            step_x = math.floor(map_width/size_x)
-            step_y = math.floor(map_height/size_y)
-            for x in range(0, size_x, 1): 
-                for y in range(0, size_y, 1):
-                    if self.map_landmass[x, y] > 0:
+            step_x = math.floor(map_width/self.size_x)
+            step_y = math.floor(map_height/self.size_y)
+            for x in range(0, self.size_x, 1): 
+                for y in range(0, self.size_y, 1):
+                    if self.maps['landmass'][x, y] > 0:
                         color_0 = 75
                         color_1 = 83
                         color_2 = 32
@@ -186,7 +191,15 @@ class ui(arcade.Window):
             self.shape_list.append(shape)
     
     def data_change(self, text):
-        pass
+        print(text)
+        if text == 'load':
+            self.maps = include.os.load(self.maps)
+            self.update_map_mode('main')
+        if text == 'save':
+            include.os.save(self.maps)
+        if text == 'new':
+            self.maps = include.update_map.generate_map(self.configurations)
+            self.update_map_mode('main')
         
 class TextButton:
     def __init__(self,

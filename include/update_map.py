@@ -1,7 +1,6 @@
 import random
 import noise
 import src.map.map as map
-from collections import OrderedDict
 
 # Takes previous map state, update function
 # Return new map state
@@ -15,7 +14,7 @@ def update_map(maps, update_function, config):
 # Takes config
 # Generate initial maps
 def generate_map(config):
-    maps = OrderedDict()
+    maps = {}
     maps['map_base'] = map.Map()
-    maps['map'], maps['map_landmass'] = maps['map_base'].initial_map()
+    maps['main'], maps['map_landmass'] = maps['map_base'].initial_map()
     return maps

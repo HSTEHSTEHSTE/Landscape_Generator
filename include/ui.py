@@ -9,7 +9,7 @@ def create_ui_instance(maps, create_ui_function, config):
 def choose_ui(config):
     if config['ui'] == 'arcade':
         from src.ui.arcade import ui
-        ui_object = ui.ui()
+        ui_object = ui.ui(config)
         ui_object.setup()
         return ui_object
     
