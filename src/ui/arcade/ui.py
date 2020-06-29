@@ -113,18 +113,31 @@ class ui(arcade.Window):
         check_mouse_hover_for_buttons(x, y, self.button_list)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        check_mouse_press_for_buttons(x, y, self.button_list)\
+        check_mouse_press_for_buttons(x, y, self.button_list)
 
     def on_mouse_release(self, x, y, button, modifiers):
-        check_mouse_release_for_buttons(x, y, self.button_list)\
+        check_mouse_release_for_buttons(x, y, self.button_list)
 
-    def edit_map(self, x, y, color_0, color_1, color_2): 
-        arcade.draw_lrtb_rectangle_filled(x * step_x, (x + 1) * step_x, (y + 1) * step_y, y * step_y, (color_0, color_1, color_2))
-        arcade.finish_render()
+    def draw_map(self, map, color_dict):
+        point_list = []
+        render_color_list = []
+        self.shape_list = arcade.ShapeElementList()
+        step_x = math.floor(map_width/self.size_x)
+        step_y = math.floor(map_height/self.size_y)
+        for x in range(0, self.size_x, 1):
+            for y in range(0, self.size_y, 1):
+                color = color_dict[int(map[x, y])]
+                for i in range(4): 
+                    render_color_list.append(color)
+                point_list.append((map_width_start + x * step_x, map_height_start + (y + 1) * step_y))
+                point_list.append((map_width_start + (x + 1) * step_x, map_height_start + (y + 1) * step_y))
+                point_list.append((map_width_start + (x + 1) * step_x, map_height_start + y * step_y))
+                point_list.append((map_width_start + x * step_x, map_height_start + y * step_y))
+        shape = arcade.create_rectangles_filled_with_colors(point_list, render_color_list)
+        self.shape_list.append(shape)
 
     def update_map_mode(self, new_map_mode): 
         self.map_mode = new_map_mode
-        self.shape_list = arcade.ShapeElementList()
         print(self.map_mode)
         
         if new_map_mode == 'none':
@@ -132,63 +145,49 @@ class ui(arcade.Window):
             self.text_list.append(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])
         elif ['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20] in self.text_list: 
             self.text_list.remove(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])
-            
-        if new_map_mode == 'main': 
-            point_list = []
-            main_color_list = []
-            max_element = np.amax(self.maps['main'])
-            min_element = np.amin(self.maps['main'])
+        
+        value_color_dict = {}
+        
+        if new_map_mode == 'main':
+            max_element = int(np.amax(self.maps['main']))
+            min_element = int(np.amin(self.maps['main']))
             color_step_0 = math.floor(125/(max_element))
             color_step_1 = math.floor(255/(max_element))
             color_step_2 = math.floor(170/(max_element))
-            step_x = math.floor(map_width/self.size_x)
-            step_y = math.floor(map_height/self.size_y)
-            for x in range(0, self.size_x, 1): 
-                for y in range(0, self.size_y, 1):
-                    if self.maps['main'][x, y] > 0:
-                        color_0 = 125 - color_step_0 * (self.maps['main'][x, y])
-                        color_1 = 255 - color_step_1 * (self.maps['main'][x, y])
-                        color_2 = 170 - color_step_2 * (self.maps['main'][x, y])
-                    elif self.maps['main'][x, y] > -1: 
-                        color_0 = 0
-                        color_1 = 171
-                        color_2 = 255
-                    else: 
-                        color_0 = 0
-                        color_1 = 125
-                        color_2 = 255
-                    for i in range(4): 
-                        main_color_list.append((color_0, color_1, color_2))
-                    point_list.append((map_width_start + x * step_x, map_height_start + (y + 1) * step_y))
-                    point_list.append((map_width_start + (x + 1) * step_x, map_height_start + (y + 1) * step_y))
-                    point_list.append((map_width_start + (x + 1) * step_x, map_height_start + y * step_y))
-                    point_list.append((map_width_start + x * step_x, map_height_start + y * step_y))           
-            shape = arcade.create_rectangles_filled_with_colors(point_list, main_color_list)
-            self.shape_list.append(shape)
+            
+            for altitude in range(min_element, max_element + 1, 1):
+                if altitude > 0:
+                    color_0 = 125 - color_step_0 * altitude
+                    color_1 = 255 - color_step_1 * altitude
+                    color_2 = 170 - color_step_2 * altitude
+                elif altitude > -1:
+                    color_0 = 0
+                    color_1 = 171
+                    color_2 = 255
+                else:
+                    color_0 = 0
+                    color_1 = 125
+                    color_2 = 255
+                value_color_dict[altitude] = (color_0, color_1, color_2)
+            
+            self.draw_map(self.maps['main'], value_color_dict)
             
         if new_map_mode == 'landmass':
-            point_list = []
-            main_color_list = []
-            step_x = math.floor(map_width/self.size_x)
-            step_y = math.floor(map_height/self.size_y)
-            for x in range(0, self.size_x, 1): 
-                for y in range(0, self.size_y, 1):
-                    if self.maps['landmass'][x, y] > 0:
-                        color_0 = 75
-                        color_1 = 83
-                        color_2 = 32
-                    else: 
-                        color_0 = 0
-                        color_1 = 127
-                        color_2 = 255
-                    for i in range(4): 
-                        main_color_list.append((color_0, color_1, color_2))  
-                    point_list.append((map_width_start + x * step_x, map_height_start + (y + 1) * step_y))
-                    point_list.append((map_width_start + (x + 1) * step_x, map_height_start + (y + 1) * step_y))
-                    point_list.append((map_width_start + (x + 1) * step_x, map_height_start + y * step_y))
-                    point_list.append((map_width_start + x * step_x, map_height_start + y * step_y))           
-            shape = arcade.create_rectangles_filled_with_colors(point_list, main_color_list)
-            self.shape_list.append(shape)
+            max_element = int(np.amax(self.maps['main']))
+            min_element = int(np.amin(self.maps['main']))
+            
+            for altitude in range(min_element, max_element + 1, 1):
+                if altitude > 0:
+                    color_0 = 75
+                    color_1 = 83
+                    color_2 = 32
+                else:
+                    color_0 = 0
+                    color_1 = 127
+                    color_2 = 255
+                value_color_dict[altitude] = (color_0, color_1, color_2)
+                
+            self.draw_map(self.maps['landmass'], value_color_dict)
     
     def data_change(self, text):
         print(text)
