@@ -1,11 +1,26 @@
-class Resource: 
-    def __init__(self, name, size_x, size_y, continent_number, roughness, scale, type_desc, map, map_landmass): 
-        self.name = name
-        self.continent_number = continent_number
-        self.type_desc = type_desc
-        self.map = makeNoiseMap(size_x, size_y, continent_number, roughness, scale)
-        self.map = np.absolute(self.map)
-        if type_desc == 'land_only': 
-            self.map = map_land_only(size_x, size_y, self.map, map_landmass, 1)
-        if type_desc == 'sea_only': 
-            self.map = map_sea_only(size_x, size_y, self.map, map_landmass, 0)
+import src.resource.resource as rs
+
+# Resource config dictionary
+resources = {
+    "vibranium": {
+        "vein_number": 1,
+        "generation_method": "uniform",
+        "land_or_sea_only": "land_only"
+    }
+}
+
+# Give default value to each key for each resource
+for resource in resources:
+    if "vein_number" not in resources[resource]:
+        resources[resource]["vein_number"] = 1
+    if "generation_method" not in resources[resource]:
+        resources[resource]["generation_method"] = "uniform"
+    if "land_or_sea_only" not in resources[resource]:
+        resources[resource]["land_or_sea_only"] = "any"
+
+# Takes resource config dictionary
+# Generates map with initial configuration of resource
+def generate_resources(config, maps):
+    resource_maps = {}
+    for resource in resources:
+        resources[resource] = rs.Resource(resources[resource], config, maps)

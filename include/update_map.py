@@ -1,5 +1,3 @@
-import random
-import noise
 import src.map.map as map
 
 # Takes previous map state, update function
@@ -15,6 +13,6 @@ def update_map(maps, update_function, config):
 # Generate initial maps
 def generate_map(config):
     maps = {}
-    maps['map_base'] = map.Map()
+    maps['map_base'] = map.Map(config['size_x'], config['size_y'], config['continent_number'])
     maps['main'], maps['map_landmass'] = maps['map_base'].initial_map()
     return maps

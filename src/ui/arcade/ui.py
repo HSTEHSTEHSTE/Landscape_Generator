@@ -36,12 +36,19 @@ right_button_column_width_centre = window_width - int(window_width/20)
 def make_button_column(button_list, json_button_list, button_width_centre):
     index = 0
     button_height_centre = window_height - int(window_height/8)
-    button_height_step = int(window_height/22)
+    button_height_step = int(window_height/23)
     for json_button in json_button_list:
         button = MapModeUpdateButton(button_width_centre, button_height_centre, json_button["function"], json_button["text"])
         button_height_centre -= button_height_step
         button_list.append(button)
     return button_list
+
+def clear_button_column(button_list, button_width_centre):
+    new_button_list = []
+    for button in button_list:
+        if button.width_centre != button_width_centre:
+            new_button_list.append(button)
+    return new_button_list
     
 class ui(arcade.Window):
     
@@ -76,6 +83,11 @@ class ui(arcade.Window):
             "text": "landmass"
         }
 
+        self.button_resource = {
+            "function": self.update_button_list,
+            "text": "resource"
+        }
+
         self.button_new = {
             "function": self.data_change,
             "text": "new"
@@ -91,7 +103,7 @@ class ui(arcade.Window):
             "text": "save"
         }
         
-        self.button_list_mapmodes = [self.button_main, self.button_landmass]
+        self.button_list_mapmodes = [self.button_main, self.button_landmass, self.button_resource]
         self.button_list_datachanges = [self.button_new, self.button_load, self.button_save]
     
     def setup(self): 
@@ -199,7 +211,12 @@ class ui(arcade.Window):
         if text == 'new':
             self.maps = include.update_map.generate_map(self.configurations)
             self.update_map_mode('main')
-        
+    
+    def update_button_list(self, text):
+        print(text)
+        if text == 'resource':
+            self.button_list = clear_button_column(self.button_list, left_button_column_width_centre)
+    
 class TextButton:
     def __init__(self,
                  center_x, center_y,
@@ -312,6 +329,7 @@ class MapModeUpdateButton(TextButton):
     def __init__(self, center_x, center_y, action_function, text):
         super().__init__(center_x, center_y, button_width, button_height, text, font_size, font)
         self.action_function = action_function
+        self.width_centre = center_x
 
     def on_release(self):
         super().on_release()
