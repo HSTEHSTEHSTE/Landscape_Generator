@@ -11,32 +11,26 @@ ui_config = {
     "font": "Arial",
     "font_size": 18
 }
-#todo: generate ui_config automatically by fetching window resolution
 
-window_width = ui_config["window_width"]
-window_height = ui_config["window_height"]
-window_title = ui_config["window_title"]
+def init_params():
+    ui_config["map_width"] = int(ui_config["window_width"]/5*4)
+    ui_config["map_height"] = int(ui_config["window_height"]/4*3)
 
-map_width = int(window_width/5*4)
-map_height = int(window_height/4*3)
+    ui_config["map_height_start"] = int((ui_config["window_height"] - ui_config["map_height"])/2)
+    ui_config["map_height_end"] = int(ui_config["window_height"] - ui_config["map_height_start"])
+    ui_config["map_width_start"] = int((ui_config["window_width"] - ui_config["map_width"])/2)
+    ui_config["map_width_end"] = int(ui_config["window_width"] - ui_config["map_width_start"])
 
-map_height_start = (window_height - map_height)/2
-map_height_end = window_height - map_height_start
-map_width_start = (window_width - map_width)/2
-map_width_end = window_width - map_width_start
+    ui_config["button_width"] = int(ui_config["window_width"]/10)
+    ui_config["button_height"] = int(ui_config["window_width"]/50)
 
-button_width = int(window_width/10)
-button_height = int(window_width/50)
-font = ui_config["font"]
-font_size = ui_config["font_size"]
-
-left_button_column_width_centre = int(window_width/20)
-right_button_column_width_centre = window_width - int(window_width/20)
+    ui_config["left_button_column_width_centre"] = int(ui_config["window_width"]/20)
+    ui_config["right_button_column_width_centre"] = ui_config["window_width"] - int(ui_config["window_width"]/20)
 
 def make_button_column(button_list, json_button_list, button_width_centre):
     index = 0
-    button_height_centre = window_height - int(window_height/8)
-    button_height_step = int(window_height/23)
+    button_height_centre = ui_config["window_height"] - int(ui_config["window_height"]/8)
+    button_height_step = ui_config["button_height"]
     for json_button in json_button_list:
         button = MapModeUpdateButton(button_width_centre, button_height_centre, json_button["function"], json_button["text"])
         button_height_centre -= button_height_step
@@ -51,9 +45,13 @@ def clear_button_column(button_list, button_width_centre):
     return new_button_list
     
 class ui(arcade.Window):
-    
     def __init__(self, config):
-        super().__init__(window_width, window_height, window_title)
+        ui_config["window_width"] = config["screen_width"]
+        ui_config["window_height"] = config["screen_height"]
+        init_params()
+        for param in ui_config:
+            print(param, ": ", ui_config[param])
+        super().__init__(ui_config["window_width"], ui_config["window_height"], ui_config["window_title"])
         arcade.set_background_color(arcade.color.WHITE)
         self.shape_list = None
         self.button_list = []
@@ -61,8 +59,8 @@ class ui(arcade.Window):
         self.create_buttons()
         self.maps = {}
         
-        make_button_column(self.button_list, self.button_list_mapmodes, left_button_column_width_centre)
-        make_button_column(self.button_list, self.button_list_datachanges, right_button_column_width_centre)
+        make_button_column(self.button_list, self.button_list_mapmodes, ui_config["left_button_column_width_centre"])
+        make_button_column(self.button_list, self.button_list_datachanges, ui_config["right_button_column_width_centre"])
         
         self.step_x = 0
         self.step_y = 0
@@ -106,7 +104,7 @@ class ui(arcade.Window):
         self.button_list_mapmodes = [self.button_main, self.button_landmass, self.button_resource]
         self.button_list_datachanges = [self.button_new, self.button_load, self.button_save]
     
-    def setup(self): 
+    def setup(self):
         self.shape_list = arcade.ShapeElementList()
         self.update_map_mode('none')
         arcade.run()
@@ -133,18 +131,18 @@ class ui(arcade.Window):
     def draw_map(self, map, color_dict):
         point_list = []
         render_color_list = []
-        self.shape_list = arcade.ShapeElementList()
-        step_x = math.floor(map_width/self.size_x)
-        step_y = math.floor(map_height/self.size_y)
+        # self.shape_list = arcade.ShapeElementList()
+        step_x = math.floor(ui_config["map_width"]/self.size_x)
+        step_y = math.floor(ui_config["map_height"]/self.size_y)
         for x in range(0, self.size_x, 1):
             for y in range(0, self.size_y, 1):
                 color = color_dict[int(map[x, y])]
                 for i in range(4): 
                     render_color_list.append(color)
-                point_list.append((map_width_start + x * step_x, map_height_start + (y + 1) * step_y))
-                point_list.append((map_width_start + (x + 1) * step_x, map_height_start + (y + 1) * step_y))
-                point_list.append((map_width_start + (x + 1) * step_x, map_height_start + y * step_y))
-                point_list.append((map_width_start + x * step_x, map_height_start + y * step_y))
+                point_list.append((ui_config["map_width_start"] + x * step_x, ui_config["map_height_start"] + (y + 1) * step_y))
+                point_list.append((ui_config["map_width_start"] + (x + 1) * step_x, ui_config["map_height_start"] + (y + 1) * step_y))
+                point_list.append((ui_config["map_width_start"] + (x + 1) * step_x, ui_config["map_height_start"] + y * step_y))
+                point_list.append((ui_config["map_width_start"] + x * step_x, ui_config["map_height_start"] + y * step_y))
         shape = arcade.create_rectangles_filled_with_colors(point_list, render_color_list)
         self.shape_list.append(shape)
 
@@ -154,9 +152,9 @@ class ui(arcade.Window):
         
         if new_map_mode == 'none':
             arcade.start_render()
-            self.text_list.append(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])
-        elif ['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20] in self.text_list: 
-            self.text_list.remove(['Welcome', window_width/2, window_height/2, arcade.color.BLACK, 20])
+            self.text_list.append(['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, 20])
+        elif ['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, 20] in self.text_list: 
+            self.text_list.remove(['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, 20])
         
         value_color_dict = {}
         
@@ -201,6 +199,8 @@ class ui(arcade.Window):
                 
             self.draw_map(self.maps['landmass'], value_color_dict)
     
+        self.on_draw()
+    
     def data_change(self, text):
         print(text)
         if text == 'load':
@@ -215,7 +215,7 @@ class ui(arcade.Window):
     def update_button_list(self, text):
         print(text)
         if text == 'resource':
-            self.button_list = clear_button_column(self.button_list, left_button_column_width_centre)
+            self.button_list = clear_button_column(self.button_list, ui_config["left_button_column_width_centre"])
     
 class TextButton:
     def __init__(self,
@@ -240,7 +240,7 @@ class TextButton:
         self.face_color = face_color
         self.highlight_color = highlight_color
         self.shadow_color = shadow_color
-        self.button_height = button_height
+        self.button_height = ui_config["button_height"]
         self.hover_color = arcade.color.BLUE
 
     def draw(self):
@@ -327,7 +327,7 @@ def check_mouse_unhover_for_buttons(x, y, button_list):
 
 class MapModeUpdateButton(TextButton):
     def __init__(self, center_x, center_y, action_function, text):
-        super().__init__(center_x, center_y, button_width, button_height, text, font_size, font)
+        super().__init__(center_x, center_y, ui_config["button_width"], ui_config["button_height"], text, ui_config["font_size"], ui_config["font"])
         self.action_function = action_function
         self.width_centre = center_x
 
