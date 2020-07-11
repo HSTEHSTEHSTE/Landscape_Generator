@@ -12,9 +12,14 @@ ui_config = {
     "font_size": 18
 }
 
-def init_params():
+def init_params(config):
     ui_config["map_width"] = int(ui_config["window_width"]/5*4)
     ui_config["map_height"] = int(ui_config["window_height"]/4*3)
+    
+    ui_config["step_x"] = math.floor(ui_config["map_width"]/config["size_x"])
+    ui_config["step_y"] = math.floor(ui_config["map_height"]/config["size_y"])
+    ui_config["map_width"] = ui_config["step_x"]*config["size_x"]
+    ui_config["map_height"] = ui_config["step_y"]*config["size_y"]
 
     ui_config["map_height_start"] = int((ui_config["window_height"] - ui_config["map_height"])/2)
     ui_config["map_height_end"] = int(ui_config["window_height"] - ui_config["map_height_start"])
@@ -23,17 +28,22 @@ def init_params():
 
     ui_config["button_width"] = int(ui_config["window_width"]/10)
     ui_config["button_height"] = int(ui_config["window_width"]/50)
+    ui_config["button_border_width"] = int(ui_config["window_width"]/1000)
 
     ui_config["left_button_column_width_centre"] = int(ui_config["window_width"]/20)
     ui_config["right_button_column_width_centre"] = ui_config["window_width"] - int(ui_config["window_width"]/20)
+    
+    ui_config["font_size"] = int(ui_config["window_width"]/100)
 
 def make_button_column(button_list, json_button_list, button_width_centre):
     index = 0
     button_height_centre = ui_config["window_height"] - int(ui_config["window_height"]/8)
     button_height_step = ui_config["button_height"]
+    print("button_height_step: ", button_height_step)
     for json_button in json_button_list:
         button = MapModeUpdateButton(button_width_centre, button_height_centre, json_button["function"], json_button["text"])
         button_height_centre -= button_height_step
+        print("height_centre: ", button_height_centre)
         button_list.append(button)
     return button_list
 
@@ -48,10 +58,9 @@ class ui(arcade.Window):
     def __init__(self, config):
         ui_config["window_width"] = config["screen_width"]
         ui_config["window_height"] = config["screen_height"]
-        init_params()
-        for param in ui_config:
-            print(param, ": ", ui_config[param])
         super().__init__(ui_config["window_width"], ui_config["window_height"], ui_config["window_title"])
+        ui_config["window_width"], ui_config["window_height"] = self.get_size()
+        init_params(config)
         arcade.set_background_color(arcade.color.WHITE)
         self.shape_list = None
         self.button_list = []
@@ -70,6 +79,8 @@ class ui(arcade.Window):
         
         self.configurations = config
     
+        self.state = "geography"
+
     def create_buttons(self):
         self.button_main = {
             "function": self.update_map_mode,
@@ -101,6 +112,11 @@ class ui(arcade.Window):
             "text": "save"
         }
         
+        self.button_back = {
+            "function": self.update_button_list,
+            "text": "back"
+        }
+        self.button_list_resources = [self.button_back]
         self.button_list_mapmodes = [self.button_main, self.button_landmass, self.button_resource]
         self.button_list_datachanges = [self.button_new, self.button_load, self.button_save]
     
@@ -152,9 +168,9 @@ class ui(arcade.Window):
         
         if new_map_mode == 'none':
             arcade.start_render()
-            self.text_list.append(['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, 20])
-        elif ['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, 20] in self.text_list: 
-            self.text_list.remove(['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, 20])
+            self.text_list.append(['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, ui_config["font_size"]])
+        elif ['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, ui_config["font_size"]] in self.text_list: 
+            self.text_list.remove(['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, ui_config["font_size"]])
         
         value_color_dict = {}
         
@@ -199,8 +215,6 @@ class ui(arcade.Window):
                 
             self.draw_map(self.maps['landmass'], value_color_dict)
     
-        self.on_draw()
-    
     def data_change(self, text):
         print(text)
         if text == 'load':
@@ -216,6 +230,12 @@ class ui(arcade.Window):
         print(text)
         if text == 'resource':
             self.button_list = clear_button_column(self.button_list, ui_config["left_button_column_width_centre"])
+            self.button_list = make_button_column(self.button_list, self.button_list_resources, ui_config["left_button_column_width_centre"])
+            self.state = "resource"
+        if text == 'back':
+            if self.state == "resource":
+                self.button_list = clear_button_column(self.button_list, ui_config["left_button_column_width_centre"])
+                self.button_list = make_button_column(self.button_list, self.button_list_mapmodes, ui_config["left_button_column_width_centre"])
     
 class TextButton:
     def __init__(self,
@@ -241,10 +261,18 @@ class TextButton:
         self.highlight_color = highlight_color
         self.shadow_color = shadow_color
         self.button_height = ui_config["button_height"]
-        self.hover_color = arcade.color.BLUE
-
+        self.hover_color = (0, 255, 0)
+        
     def draw(self):
+        if self.pressed:
+            self.face_color = self.highlight_color
+        elif self.hover: 
+            self.face_color = self.hover_color
+        else: 
+            self.face_color = self.shadow_color
+
         arcade.draw_rectangle_filled(self.center_x, self.center_y, self.width, self.height, self.face_color)
+
         if self.pressed:
             color = self.highlight_color
         elif self.hover: 
@@ -253,29 +281,19 @@ class TextButton:
             color = self.shadow_color
 
         # Bottom horizontal
-        arcade.draw_line(self.center_x - self.width / 2, self.center_y - self.height / 2, self.center_x + self.width / 2, self.center_y - self.height / 2, color, self.button_height)
+        arcade.draw_line(int(self.center_x - self.width / 2), int(self.center_y - self.height / 2), int(self.center_x + self.width / 2), int(self.center_y - self.height / 2), color)
 
         # Right vertical
-        arcade.draw_line(self.center_x + self.width / 2, self.center_y - self.height / 2, self.center_x + self.width / 2, self.center_y + self.height / 2, color, self.button_height)
-
-        if self.pressed:
-            color = self.highlight_color
-        elif self.hover: 
-            color = self.hover_color
-        else: 
-            color = self.shadow_color
+        arcade.draw_line(self.center_x + self.width / 2, self.center_y - self.height / 2, self.center_x + self.width / 2, self.center_y + self.height / 2, color)
 
         # Top horizontal
-        arcade.draw_line(self.center_x - self.width / 2, self.center_y + self.height / 2, self.center_x + self.width / 2, self.center_y + self.height / 2, color, self.button_height)
+        arcade.draw_line(self.center_x - self.width / 2, self.center_y + self.height / 2, self.center_x + self.width / 2, self.center_y + self.height / 2, color)
 
         # Left vertical
-        arcade.draw_line(self.center_x - self.width / 2, self.center_y - self.height / 2, self.center_x - self.width / 2, self.center_y + self.height / 2, color, self.button_height)
+        arcade.draw_line(self.center_x - self.width / 2, self.center_y - self.height / 2, self.center_x - self.width / 2, self.center_y + self.height / 2, color)
 
         x = self.center_x
         y = self.center_y
-        if not self.pressed:
-            x -= self.button_height
-            y += self.button_height
         arcade.draw_text(self.text, x, y, arcade.color.BLACK, font_size=self.font_size, width=self.width, align="center", anchor_x="center", anchor_y="center")
 
     def on_press(self):
