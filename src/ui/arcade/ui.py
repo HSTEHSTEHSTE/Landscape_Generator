@@ -67,6 +67,7 @@ class ui(arcade.Window):
         self.text_list = []
         self.create_buttons()
         self.maps = {}
+        self.resources = {}
         
         make_button_column(self.button_list, self.button_list_mapmodes, ui_config["left_button_column_width_centre"])
         make_button_column(self.button_list, self.button_list_datachanges, ui_config["right_button_column_width_centre"])
@@ -80,6 +81,8 @@ class ui(arcade.Window):
         self.configurations = config
     
         self.state = "geography"
+
+        self.value_color_dict = {}
 
     def create_buttons(self):
         self.button_main = {
@@ -112,13 +115,23 @@ class ui(arcade.Window):
             "text": "save"
         }
         
+        self.button_generate_resources = {
+            "function": self.data_change,
+            "text": "generate resources"
+        }
+        
         self.button_back = {
             "function": self.update_button_list,
             "text": "back"
         }
-        self.button_list_resources = [self.button_back]
+        
+        self.button_vibranium = {
+            "function": self.update_map_mode,
+            "text": "vibranium"
+        }
+        self.button_list_resources = [self.button_back, self.button_vibranium]
         self.button_list_mapmodes = [self.button_main, self.button_landmass, self.button_resource]
-        self.button_list_datachanges = [self.button_new, self.button_load, self.button_save]
+        self.button_list_datachanges = [self.button_new, self.button_load, self.button_save, self.button_generate_resources]
     
     def setup(self):
         self.shape_list = arcade.ShapeElementList()
@@ -172,8 +185,6 @@ class ui(arcade.Window):
         elif ['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, ui_config["font_size"]] in self.text_list: 
             self.text_list.remove(['Welcome', ui_config["window_width"]/2, ui_config["window_height"]/2, arcade.color.BLACK, ui_config["font_size"]])
         
-        value_color_dict = {}
-        
         if new_map_mode == 'main':
             max_element = int(np.amax(self.maps['main']))
             min_element = int(np.amin(self.maps['main']))
@@ -194,13 +205,13 @@ class ui(arcade.Window):
                     color_0 = 0
                     color_1 = 125
                     color_2 = 255
-                value_color_dict[altitude] = (color_0, color_1, color_2)
+                self.value_color_dict[altitude] = (color_0, color_1, color_2)
             
-            self.draw_map(self.maps['main'], value_color_dict)
+            self.draw_map(self.maps['main'], self.value_color_dict)
             
         if new_map_mode == 'landmass':
-            max_element = int(np.amax(self.maps['main']))
-            min_element = int(np.amin(self.maps['main']))
+            max_element = int(np.amax(self.maps['landmass']))
+            min_element = int(np.amin(self.maps['landmass']))
             
             for altitude in range(min_element, max_element + 1, 1):
                 if altitude > 0:
@@ -211,9 +222,34 @@ class ui(arcade.Window):
                     color_0 = 0
                     color_1 = 127
                     color_2 = 255
-                value_color_dict[altitude] = (color_0, color_1, color_2)
+                self.value_color_dict[altitude] = (color_0, color_1, color_2)
                 
-            self.draw_map(self.maps['landmass'], value_color_dict)
+            self.draw_map(self.maps['landmass'], self.value_color_dict)
+            
+        if new_map_mode == 'vibranium':
+            overlayed_map, overlay_factor = self.overlay_map(self.resources['vibranium']['resource_object'].map, self.maps[self.geography_map_mode])
+            max_element = int(np.amax(self.resources['vibranium']['resource_object'].map))
+            color_step = math.floor(255/max_element)
+            color = 255
+            print(max_element)
+            for altitude in range(overlay_factor, max_element * overlay_factor + 1, 1):
+                if altitude % overlay_factor != 0:
+                    self.value_color_dict[altitude] = (0, 0, 0)
+                else:
+                    color -= color_step
+                    self.value_color_dict[altitude] = (color, color, color)
+            self.draw_map(overlayed_map, self.value_color_dict)
+    
+    def overlay_map(self, top_map, lower_map):
+        overlay_factor = math.floor(np.amax(lower_map)) + 1
+        overlayed_map = np.zeros((self.size_x, self.size_y))
+        for x in range(0, self.size_x, 1):
+            for y in range(0, self.size_y, 1):
+                if top_map[x, y] == 0:
+                    overlayed_map[x, y] = lower_map[x, y]
+                else:
+                    overlayed_map[x, y] = top_map[x, y] * overlay_factor
+        return overlayed_map, overlay_factor
     
     def data_change(self, text):
         print(text)
@@ -225,6 +261,10 @@ class ui(arcade.Window):
         if text == 'new':
             self.maps = include.update_map.generate_map(self.configurations)
             self.update_map_mode('main')
+        if text == 'generate resources':
+            self.resources = include.resource.generate_resources(self.configurations, self.maps)
+            for resource in self.resources:
+                self.maps[resource] = self.resources[resource]['resource_object'].map
     
     def update_button_list(self, text):
         print(text)
@@ -232,10 +272,12 @@ class ui(arcade.Window):
             self.button_list = clear_button_column(self.button_list, ui_config["left_button_column_width_centre"])
             self.button_list = make_button_column(self.button_list, self.button_list_resources, ui_config["left_button_column_width_centre"])
             self.state = "resource"
+            self.geography_map_mode = self.map_mode
         if text == 'back':
             if self.state == "resource":
                 self.button_list = clear_button_column(self.button_list, ui_config["left_button_column_width_centre"])
                 self.button_list = make_button_column(self.button_list, self.button_list_mapmodes, ui_config["left_button_column_width_centre"])
+                self.state = "geography"
     
 class TextButton:
     def __init__(self,
@@ -273,12 +315,7 @@ class TextButton:
 
         arcade.draw_rectangle_filled(self.center_x, self.center_y, self.width, self.height, self.face_color)
 
-        if self.pressed:
-            color = self.highlight_color
-        elif self.hover: 
-            color = self.hover_color
-        else: 
-            color = self.shadow_color
+        color = (255, 255, 255)
 
         # Bottom horizontal
         arcade.draw_line(int(self.center_x - self.width / 2), int(self.center_y - self.height / 2), int(self.center_x + self.width / 2), int(self.center_y - self.height / 2), color)
