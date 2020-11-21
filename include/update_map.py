@@ -11,6 +11,7 @@ def update_map(maps, update_function, config):
     
 # Takes config
 # Generate initial maps
+
 def generate_map(config):
     maps = {}
     maps['map_base'] = map.Map(config['size_x'], config['size_y'], config['continent_number'])

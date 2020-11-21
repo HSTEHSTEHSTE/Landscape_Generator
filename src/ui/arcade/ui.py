@@ -39,11 +39,9 @@ def make_button_column(button_list, json_button_list, button_width_centre):
     index = 0
     button_height_centre = ui_config["window_height"] - int(ui_config["window_height"]/8)
     button_height_step = ui_config["button_height"]
-    print("button_height_step: ", button_height_step)
     for json_button in json_button_list:
         button = MapModeUpdateButton(button_width_centre, button_height_centre, json_button["function"], json_button["text"])
         button_height_centre -= button_height_step
-        print("height_centre: ", button_height_centre)
         button_list.append(button)
     return button_list
 
@@ -255,6 +253,7 @@ class ui(arcade.Window):
         print(text)
         if text == 'load':
             self.maps = include.os.load(self.maps)
+            self.resources = include#todo
             self.update_map_mode('main')
         if text == 'save':
             include.os.save(self.maps)

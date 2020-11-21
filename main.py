@@ -9,10 +9,6 @@ config = {
     "ui": 'arcade'
 }
        
-#resource_magnesium = Resource('Magnesium', size_x, size_y, 8, 5, 5, 'sea_only', map, map_landmass)
-#print(map)
-#print(resource_magnesium.map)
-
 # step_x, step_y = draw_map(map)
 
 maps = update_map.generate_map(config)
