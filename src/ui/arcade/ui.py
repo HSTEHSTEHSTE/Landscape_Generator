@@ -127,6 +127,11 @@ class ui(arcade.Window):
             "function": self.update_map_mode,
             "text": "vibranium"
         }
+
+        self.button_krill = {
+            "function": self.update_map_mode,
+            "text": "krill"
+        }
         self.button_list_resources = [self.button_back, self.button_vibranium]
         self.button_list_mapmodes = [self.button_main, self.button_landmass, self.button_resource]
         self.button_list_datachanges = [self.button_new, self.button_load, self.button_save, self.button_generate_resources]
@@ -237,6 +242,20 @@ class ui(arcade.Window):
                     color -= color_step
                     self.value_color_dict[altitude] = (color, color, color)
             self.draw_map(overlayed_map, self.value_color_dict)
+
+        if new_map_mode == 'krill':
+            overlayed_map, overlay_factor = self.overlay_map(self.resources['krill']['resource_object'].map, self.maps[self.geography_map_mode])
+            max_element = int(np.amax(self.resources['krill']['resource_object'].map))
+            color_step = math.floor(255/max_element)
+            color = 255
+            print(max_element)
+            for altitude in range(overlay_factor, max_element * overlay_factor + 1, 1):
+                if altitude % overlay_factor != 0:
+                    self.value_color_dict[altitude] = (0, 0, 0)
+                else:
+                    color -= color_step
+                    self.value_color_dict[altitude] = (color, color, color)
+            self.draw_map(overlayed_map, self.value_color_dict)    
     
     def overlay_map(self, top_map, lower_map):
         overlay_factor = math.floor(np.amax(lower_map)) + 1

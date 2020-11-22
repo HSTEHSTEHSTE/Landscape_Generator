@@ -8,6 +8,13 @@ resource_dict = {
         "generation_method": "uniform",
         "land_or_sea_only": "land_only",
         "evolve_rule": "static"
+    },
+    "krill": {
+        "vein_number": 20,
+        "average_vein_size": 100,
+        "generation_method": "uniform",
+        "land_or_sea_only": "sea_only",
+        "evolve_rule": "static"
     }
 }
 
