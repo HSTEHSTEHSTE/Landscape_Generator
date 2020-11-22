@@ -15,5 +15,5 @@ def update_map(maps, update_function, config):
 def generate_map(config):
     maps = {}
     maps['map_base'] = map.Map(config['size_x'], config['size_y'], config['continent_number'])
-    maps['main'], maps['map_landmass'] = maps['map_base'].initial_map()
+    maps['main'], maps['landmass'] = maps['map_base'].initial_map()
     return maps
