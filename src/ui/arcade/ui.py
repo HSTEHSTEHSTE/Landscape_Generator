@@ -3,6 +3,7 @@ import numpy as np
 import include.os
 import include.update_map
 import math
+from . import cmdline
 
 ui_config = {
     "window_width": 1500,
@@ -82,6 +83,10 @@ class ui(arcade.Window):
 
         self.value_color_dict = {}
 
+        self.cmd_string = ""
+        self.cmd_string_list = []
+        self.cmd_cursor_location = 0
+
     def create_buttons(self):
         self.button_main = {
             "function": self.update_map_mode,
@@ -132,7 +137,7 @@ class ui(arcade.Window):
             "function": self.update_map_mode,
             "text": "krill"
         }
-        self.button_list_resources = [self.button_back, self.button_vibranium]
+        self.button_list_resources = [self.button_back, self.button_vibranium, self.button_krill]
         self.button_list_mapmodes = [self.button_main, self.button_landmass, self.button_resource]
         self.button_list_datachanges = [self.button_new, self.button_load, self.button_save, self.button_generate_resources]
     
@@ -159,6 +164,10 @@ class ui(arcade.Window):
 
     def on_mouse_release(self, x, y, button, modifiers):
         check_mouse_release_for_buttons(x, y, self.button_list)
+
+    def on_key_press(self, key, modifiers):
+        self.cmd_string, self.cmd_cursor_location, action = cmdline.parse(key, self.cmd_string, self.cmd_cursor_location)
+        # todo act
 
     def draw_map(self, map, color_dict):
         point_list = []
